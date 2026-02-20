@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package serverrest;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -16,56 +15,52 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 /**
  *
  * @author delfo
  */
-
-
 public class RouletteGetHandler implements HttpHandler {
-    
+
     // Istanza Gson configurata per pretty printing
     private final Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .create();
-    
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        
+
         // Verifica che sia una richiesta GET
         if (!exchange.getRequestMethod().equalsIgnoreCase("GET")) {
             inviaErrore(exchange, 405, "Metodo non consentito. Usa GET");
             return;
         }
-        
+
         try {
             // Estrae i parametri dalla query string
             Map<String, String> parametri = estraiParametri(exchange.getRequestURI().getQuery());
-            
+
             // Validazione parametri
             if (validazioneParametri(parametri)) {
-                inviaErrore(exchange, 400, 
-                    "Parametri mancanti. Necessari: operando1, operando2, operatore");
+                inviaErrore(exchange, 400,
+                        "Parametri mancanti. Necessari: numero");
                 return;
             }
-            
+
             // Parsing dei valori
-            
-            
+            String giocata = parametri.get("giocata");
+            Integer numero = Integer.parseInt(parametri.get("numero"));
+
             // Esegue la logica di calcolo
-            double risultato = RouletteService.logicaDiCalcolo(numero);
-            
+            boolean risultato = RouletteService.logicaDiCalcolo(giocata, numero);
+
             // Crea l'oggetto risposta
-            RouletteResponse response = new RouletteResponse(
-            );
-            
+            RouletteResponse response = new RouletteResponse();
+
             // GSON converte automaticamente l'oggetto Java in JSON
             String jsonRisposta = gson.toJson(response);
-            
+
             inviaRisposta(exchange, 200, jsonRisposta);
-            
+
         } catch (NumberFormatException e) {
             inviaErrore(exchange, 400, "Operandi non validi. Devono essere numeri");
         } catch (IllegalArgumentException e) {
@@ -77,19 +72,15 @@ public class RouletteGetHandler implements HttpHandler {
 
     // Validazione dei parametri (da implementare)
     private boolean validazioneParametri(Map<String, String> parametri) {
-        
-        return false;
+        return !parametri.containsKey("giocata") || !parametri.containsKey("numero");
     }
-    
+
     /**
      * Estrae i parametri dalla query string
      */
     private Map<String, String> estraiParametri(String query) {
         Map<String, String> parametri = new HashMap<>();
-        
-        if (query == null || query.isEmpty()) {
-            return parametri;
-        }
+        if (query == null || query.isEmpty()) return parametri;
         
         String[] coppie = query.split("&");
         for (String coppia : coppie) {
@@ -99,42 +90,40 @@ public class RouletteGetHandler implements HttpHandler {
                     String chiave = URLDecoder.decode(keyValue[0], "UTF-8");
                     String valore = URLDecoder.decode(keyValue[1], "UTF-8");
                     parametri.put(chiave, valore);
-                } catch (Exception e) {
-                    // Ignora parametri malformati
-                }
+                } catch (Exception e) { }
             }
         }
-        
         return parametri;
     }
-    
+
+
     /**
      * Invia una risposta di successo
      */
-    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta) 
+    private void inviaRisposta(HttpExchange exchange, int codice, String jsonRisposta)
             throws IOException {
-        
+
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        
+
         byte[] bytes = jsonRisposta.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(codice, bytes.length);
-        
+
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);
         os.close();
     }
-    
+
     /**
      * Invia una risposta di errore in formato JSON
      */
-    private void inviaErrore(HttpExchange exchange, int codice, String messaggio) 
+    private void inviaErrore(HttpExchange exchange, int codice, String messaggio)
             throws IOException {
-        
+
         Map<String, Object> errore = new HashMap<>();
         errore.put("errore", messaggio);
         errore.put("status", codice);
-        
+
         String jsonErrore = gson.toJson(errore);
         inviaRisposta(exchange, codice, jsonErrore);
     }

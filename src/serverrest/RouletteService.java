@@ -5,44 +5,55 @@
 package serverrest;
 
 /**
- *
- * @author delfo
+ * Servizio contenente la logica di business della Roulette
+ * * @author delfo
  */
 public class RouletteService {
     
     /**
-     * Esegue l'operazione matematica richiesta
-     * 
-     * @param 
-     * @param 
-     * @param 
-     * @return 
-     * @throws IllegalArgumentException se ...
+     * Esegue la logica di calcolo per determinare la vittoria
+     * * @param giocata la stringa puntata ("PARI" o "DISPARI")
+     * @param numero il numero estratto dalla roulette (0-36)
+     * @return true se il giocatore ha vinto, false se ha perso
+     * @throws IllegalArgumentException se i parametri non sono validi
      */
-    public static double logicaDiCalcolo(Integer numero) 
+    public static boolean logicaDiCalcolo(String giocata, Integer numero) 
             throws IllegalArgumentException {
         
-        
         // Controllo se i parametri passati sono validi
-                if (!parametriValidi()) {
-            throw new IllegalArgumentException("Operatore non può essere vuoto");
-        }
-        
-        try {
-            
-        } catch (Exception e) {
+        if (!parametriValidi(giocata, numero)) {
             throw new IllegalArgumentException(
-                    "Opzione non valida. Inserire PARI o DISPARI");
+                "Parametri non validi. La giocata deve essere PARI o DISPARI e il numero compreso tra 0 e 36.");
         }
         
+        if (numero == 0) {
+            return false;
+        }
         
+        boolean isPari = (numero % 2 == 0);
         
-        return 0; // Placeholder, da sostituire con il risultato della logica di calcolo
+        if (giocata.equals("PARI")) {
+            return isPari;       
+        } else {
+            return !isPari;
+        }
     }
 
-    // Metodo di validazione dei parametri (da implementare)
-    private static boolean parametriValidi()
-    {
-        return false;
+    /**
+     * Metodo di validazione dei parametri in ingresso
+     */
+    private static boolean parametriValidi(String giocata, Integer numero) {
+        if (giocata == null || numero == null) {
+            return false;
+        }
+        
+        if (!giocata.equals("PARI") && !giocata.equals("DISPARI")) {
+            return false;
+        }
+        if (numero < 0 || numero > 36) {
+            return false;
+        }
+        
+        return true; 
     }
 }
