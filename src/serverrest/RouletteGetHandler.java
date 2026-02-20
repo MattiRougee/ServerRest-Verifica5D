@@ -54,7 +54,11 @@ public class RouletteGetHandler implements HttpHandler {
             boolean risultato = RouletteService.logicaDiCalcolo(giocata, numero);
 
             // Crea l'oggetto risposta
-            RouletteResponse response = new RouletteResponse();
+            RouletteResponse response = new RouletteResponse(
+                    giocata,
+                    numero,
+                    String.valueOf(risultato)
+            );
 
             // GSON converte automaticamente l'oggetto Java in JSON
             String jsonRisposta = gson.toJson(response);
@@ -80,8 +84,10 @@ public class RouletteGetHandler implements HttpHandler {
      */
     private Map<String, String> estraiParametri(String query) {
         Map<String, String> parametri = new HashMap<>();
-        if (query == null || query.isEmpty()) return parametri;
-        
+        if (query == null || query.isEmpty()) {
+            return parametri;
+        }
+
         String[] coppie = query.split("&");
         for (String coppia : coppie) {
             String[] keyValue = coppia.split("=");
@@ -90,12 +96,12 @@ public class RouletteGetHandler implements HttpHandler {
                     String chiave = URLDecoder.decode(keyValue[0], "UTF-8");
                     String valore = URLDecoder.decode(keyValue[1], "UTF-8");
                     parametri.put(chiave, valore);
-                } catch (Exception e) { }
+                } catch (Exception e) {
+                }
             }
         }
         return parametri;
     }
-
 
     /**
      * Invia una risposta di successo
