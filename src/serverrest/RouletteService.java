@@ -19,8 +19,9 @@ public class RouletteService {
      * @return 
      * @throws IllegalArgumentException se ...
      */
-    public static double logicaDiCalcolo() 
+    public static double logicaDiCalcolo(Integer numero) 
             throws IllegalArgumentException {
+        
         
         // Controllo se i parametri passati sono validi
                 if (!parametriValidi()) {
@@ -31,8 +32,11 @@ public class RouletteService {
             
         } catch (Exception e) {
             throw new IllegalArgumentException(
-                    "Opzione non valida. Opzione deve essere DA FARE");
+                    "Opzione non valida. Inserire PARI o DISPARI");
         }
+        
+        
+        
         return 0; // Placeholder, da sostituire con il risultato della logica di calcolo
     }
 

@@ -55,7 +55,7 @@ public class RouletteGetHandler implements HttpHandler {
             
             
             // Esegue la logica di calcolo
-            double risultato = RouletteService.logicaDiCalcolo();
+            double risultato = RouletteService.logicaDiCalcolo(numero);
             
             // Crea l'oggetto risposta
             RouletteResponse response = new RouletteResponse(
