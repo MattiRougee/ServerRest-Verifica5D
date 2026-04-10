@@ -42,53 +42,33 @@ public class RoulettePostHandler implements HttpHandler {
             return;
         }
         
-        try {
-            // Legge il body della richiesta
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8)
-            );
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8))) {
             
-            // GSON converte automaticamente il JSON in oggetto Java
             RouletteRequest request = gson.fromJson(reader, RouletteRequest.class);
-            reader.close();
             
-            // Validazione
-            if (request == null) {
-                inviaErrore(exchange, 400, "Body della richiesta vuoto o non valido");
+            if (request == null || !isValid(request)) {
+                inviaErrore(exchange, 400, "Parametri mancanti: 'giocata' e 'numero' sono obbligatori");
                 return;
             }
             
-            if (validazioneParametri(request)) {
-                inviaErrore(exchange, 400, "Operatore mancante o vuoto");
-                return;
-            }
+            // Conversione del numero da String a Integer prima del calcolo
+            int numInt = Integer.parseInt(request.getNumero());
+            boolean esito = RouletteService.logicaDiCalcolo(request.getGiocata(), numInt);
             
-           boolean esitoVittoria = RouletteService.logicaDiCalcolo(request.getGiocata(), request.getNumero());
-            // Crea l'oggetto risposta DA FARE
-            RouletteResponse response = new RouletteResponse(
-                request.getGiocata(),
-                request.getNumero(),
-                String.valueOf(esitoVittoria)
-            );
+            RouletteResponse response = new RouletteResponse(request.getGiocata(), numInt, String.valueOf(esito));
+            inviaRisposta(exchange, 200, gson.toJson(response));
             
-            // GSON converte automaticamente l'oggetto Java in JSON
-            String jsonRisposta = gson.toJson(response);
-            
-            inviaRisposta(exchange, 200, jsonRisposta);
-            
-        } catch (JsonSyntaxException e) {
-            inviaErrore(exchange, 400, "JSON non valido: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            inviaErrore(exchange, 400, e.getMessage());
+        } catch (JsonSyntaxException | NumberFormatException e) {
+            inviaErrore(exchange, 400, "Formato dati non valido: " + e.getMessage());
         } catch (Exception e) {
-            inviaErrore(exchange, 500, "Errore interno del server: " + e.getMessage());
+            inviaErrore(exchange, 500, "Errore interno: " + e.getMessage());
         }
     }
     
     // Validazione dei parametri (da implementare)
- private boolean validazioneParametri(RouletteRequest request) {
-        // Restituisce true se manca uno dei due parametri fondamentali
-        return request.getGiocata() == null || request.getNumero() == null;
+    private boolean isValid(RouletteRequest request) {
+        return request.getGiocata() != null && request.getNumero() != null;
     }
 
     /**

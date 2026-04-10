@@ -40,9 +40,8 @@ public class RouletteGetHandler implements HttpHandler {
             Map<String, String> parametri = estraiParametri(exchange.getRequestURI().getQuery());
 
             // Validazione parametri
-            if (validazioneParametri(parametri)) {
-                inviaErrore(exchange, 400,
-                        "Parametri mancanti. Necessari: numero");
+            if (!isValido(parametri)) {
+                inviaErrore(exchange, 400, "Parametri mancanti. Necessari: giocata, numero");
                 return;
             }
 
@@ -54,29 +53,20 @@ public class RouletteGetHandler implements HttpHandler {
             boolean risultato = RouletteService.logicaDiCalcolo(giocata, numero);
 
             // Crea l'oggetto risposta
-            RouletteResponse response = new RouletteResponse(
-                    giocata,
-                    numero,
-                    String.valueOf(risultato)
-            );
+            RouletteResponse response = new RouletteResponse(giocata, numero, String.valueOf(risultato));
 
-            // GSON converte automaticamente l'oggetto Java in JSON
-            String jsonRisposta = gson.toJson(response);
-
-            inviaRisposta(exchange, 200, jsonRisposta);
+            inviaRisposta(exchange, 200, gson.toJson(response));
 
         } catch (NumberFormatException e) {
-            inviaErrore(exchange, 400, "Operandi non validi. Devono essere numeri");
-        } catch (IllegalArgumentException e) {
-            inviaErrore(exchange, 400, e.getMessage());
+            inviaErrore(exchange, 400, "Il numero deve essere un intero valido");
         } catch (Exception e) {
-            inviaErrore(exchange, 500, "Errore interno del server: " + e.getMessage());
+            inviaErrore(exchange, 500, "Errore interno: " + e.getMessage());
         }
     }
 
     // Validazione dei parametri (da implementare)
-    private boolean validazioneParametri(Map<String, String> parametri) {
-        return !parametri.containsKey("giocata") || !parametri.containsKey("numero");
+    private boolean isValido(Map<String, String> parametri) {
+        return parametri.containsKey("giocata") && parametri.containsKey("numero");
     }
 
     /**

@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
-import serverrest.RouletteV2.RouletteGetHandlerV2;
-import serverrest.RouletteV2.RoulettePostHandlerV2;
 
 /**
  * Server REST per la calcolatrice
@@ -35,10 +33,6 @@ public class ServerRest {
             // Registra gli handler per gli endpoint Legacy
             server.createContext("/api/roulette/paridispari/post", new RoulettePostHandler());
             server.createContext("/api/roulette/paridispari/get", new RouletteGetHandler());
-
-            //Endpoint V2
-            server.createContext("/api/v2/roulette/paridispari/post", new RoulettePostHandlerV2());
-            server.createContext("/api/v2/roulette/paridispari/get", new RouletteGetHandlerV2());
             
             // Endpoint di benvenuto
             server.createContext("/", ServerRest::gestisciBenvenuto);
